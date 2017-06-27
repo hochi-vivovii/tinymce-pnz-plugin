@@ -1,0 +1,1 @@
+# tinymce-pnz-plugin
