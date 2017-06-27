@@ -1,0 +1,13 @@
+{
+  "name": "tinymce-pnz-plugin",
+  "description": "tinymce-pnz-plugin",
+  "main": "main.js",
+  "authors": [
+    "Ho Chi Ho <hochi@vivovii.com>"
+  ],
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "tinymce": "https://github.com/hochi-vivovii/tinymce.git",
+  }
+}
