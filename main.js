@@ -4,30 +4,48 @@ tinymce.PluginManager.add('imagepnz', function(editor) {
 
 
     function showDialog(){
-        var win, data = {}, dom = editor.dom, imgElm, file;
+        var win, data = {}, dom = editor.dom, file;
         function onSubmitForm() {
             if (!file)
                 return;
+            editor.focus();
+            editor.notificationManager.open({
+                text: 'Uploading image....',
+                type: 'warning'
+            });
 
             var data = win.toJSON();
-            editor.focus();
-            editor.selection.setContent(
-                dom.createHTML('img', {src: loading_wheel, id: '__new_image'})
-            );
-            imgElm = dom.get('__new_image');
 
-            dom.setAttrib(imgElm, 'id', null);
+            var wrapper = constructElement(loading_wheel, data);
+            var id = "__new_image" + Math.floor((Math.random() * 10000) + 1);
+            dom.setAttrib(wrapper, 'id', id);
+            // editor.selection.setNode(wrapper);
+            editor.execCommand('mceInsertRawHTML', true, wrapper.outerHTML);
 
-            if (data.pinchAndZoom === true) {
-                dom.setAttrib(imgElm, "class", "pinch-n-zoom");
-            }
+            editor.settings.customImageUpload(file, data.pinchAndZoom).then(function(url){
+                editor.selection.select(dom.get(id));
+                editor.execCommand('mceInsertRawHTML', true, constructElement(url, data).outerHTML);
+                editor.notificationManager.open({
+                    text: 'Upload Finished',
+                    type: 'warning'
+                });
 
-            editor.settings.customImageUpload(file, pinchAndZoom).then(function(url){
-                dom.setAttrib(imgElm, "src", url);
             });
         }
+        function constructElement(url, data){
+            var wrapper = dom.create('div', {class: 'image'});
+            var image = dom.create('img', {src: url});
+
+            if (data.pinchAndZoom === true) {
+                dom.addClass(image, "pinch-n-zoom");
+                dom.addClass(wrapper, "pinch-n-zoom-wrapper");
+                dom.addClass(wrapper, "mceNonEditable");
+            }
+            dom.add(wrapper, image);
+            return wrapper;
+        }
         function fileSelected(e) {
-            if (e.meta.file.size > (200*1024)) {
+            if (e.meta.file.size > (editor.settings.customImageUploadSizeLimit)) {
                 win.find('notification')[0].innerHtml('File size must less than 200KB.');
                 win.find('notification')[0].show();
                 return;
