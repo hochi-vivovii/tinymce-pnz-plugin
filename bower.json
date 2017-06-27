@@ -8,6 +8,6 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
-    "tinymce": "https://github.com/hochi-vivovii/tinymce.git",
+    "tinymce": "https://github.com/hochi-vivovii/tinymce.git"
   }
 }
