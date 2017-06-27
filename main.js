@@ -22,7 +22,7 @@ tinymce.PluginManager.add('imagepnz', function(editor) {
                 dom.setAttrib(imgElm, "class", "pinch-n-zoom");
             }
 
-            editor.settings.customImageUpload(file).then(function(url){
+            editor.settings.customImageUpload(file, pinchAndZoom).then(function(url){
                 dom.setAttrib(imgElm, "src", url);
             });
         }
@@ -33,7 +33,7 @@ tinymce.PluginManager.add('imagepnz', function(editor) {
                 return;
             }
             if (e.meta.file.type != 'image/jpeg' && e.meta.file.type != 'image/png') {
-                win.find('notification')[0].innerHtml('File type must be either png or jpg.');
+                win.find('notification')[0].innerHtml('File type must be either jpeg or png');
                 win.find('notification')[0].show();
                 return;
             }
