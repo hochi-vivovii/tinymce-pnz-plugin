@@ -33,7 +33,7 @@ tinymce.PluginManager.add('imagepnz', function(editor) {
             });
         }
         function constructElement(url, data){
-            var wrapper = dom.create('div', {class: 'image'});
+            var wrapper = dom.create('span', {class: 'image'});
             var image = dom.create('img', {src: url});
 
             if (data.pinchAndZoom === true) {
