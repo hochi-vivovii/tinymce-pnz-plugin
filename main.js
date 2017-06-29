@@ -4,7 +4,7 @@ tinymce.PluginManager.add('imagepnz', function(editor) {
 
 
     function showDialog(){
-        var win, data = {}, dom = editor.dom, file;
+        var win, dom = editor.dom, file;
         function onSubmitForm() {
             if (!file)
                 return;
@@ -45,11 +45,10 @@ tinymce.PluginManager.add('imagepnz', function(editor) {
             return wrapper;
         }
         function fileSelected(e) {
-            if (e.meta.file.size > (editor.settings.customImageUploadSizeLimit)) {
-                win.find('notification')[0].innerHtml('File size must less than 200KB.');
-                win.find('notification')[0].show();
+            var data = win.toJSON();
+            var check = checkFileSize(e.meta.file.size, data.pinchAndZoom);
+            if (!check)
                 return;
-            }
             if (e.meta.file.type != 'image/jpeg' && e.meta.file.type != 'image/png') {
                 win.find('notification')[0].innerHtml('File type must be either jpeg or png');
                 win.find('notification')[0].show();
@@ -58,36 +57,77 @@ tinymce.PluginManager.add('imagepnz', function(editor) {
             win.find('notification')[0].hide();
             file = e.meta.file;
         }
-
+        function checkFileSize(size, pinchAndZoom){
+            if (pinchAndZoom && size > (editor.settings.pinch_and_zoom_high_res_limit * 1024)) {
+                win.find('notification')[0].innerHtml(
+                    sprintf('File size must less than %dKB.', editor.settings.pinch_and_zoom_high_res_limit)
+                );
+                win.find('notification')[0].show();
+                return false;
+            }
+            else if(!pinchAndZoom && size > (editor.settings.pinch_and_zoom_low_res_limit * 1024)) {
+                win.find('notification')[0].innerHtml(
+                    sprintf('File size must less than %dKB.', editor.settings.pinch_and_zoom_low_res_limit)
+                );
+                win.find('notification')[0].show();
+                return false;
+            }
+            return true;
+        }
+        function pnzChange(){
+            var data = win.toJSON();
+            file = null;
+            win.find('formitem')[0]._items[1].value('');
+            win.find('formitem')[1]._items[1].value('');
+            if (data.pinchAndZoom) {
+                win.find('formitem')[0].show();
+                win.find('formitem')[1].hide();
+            }
+            else {
+                win.find('formitem')[1].show();
+                win.find('formitem')[0].hide();
+            }
+            win.find('notification')[0].hide();
+        }
         // General settings shared between simple and advanced dialogs
         var generalFormItems = [
-             {
-                 name: 'file',
-                 type: 'filepicker',
-                 filetype: 'image',
-                 label: 'Source',
-                 onchange: fileSelected,
-                 autofocus: true
-             },
-             {
-                 name: 'notification',
-                 hidden: true,
-                 type: 'notification'
-             },
-             {
-                 name: 'pinchAndZoom',
-                 type: 'checkbox',
-                 label: 'Pinch-and-Zoomable'
-             }
+            {
+                name: 'pnzfile',
+                type: 'filepicker',
+                filetype: 'image',
+                label: 'Select High Res Image (< 800KB)',
+                onchange: fileSelected,
+                autofocus: true
+            },
+            {
+                name: 'file',
+                type: 'filepicker',
+                filetype: 'image',
+                label: 'Select Image (< 200KB)',
+                onchange: fileSelected,
+                autofocus: true
+            },
+            {
+                name: 'notification',
+                hidden: true,
+                type: 'notification'
+            },
+            {
+                name: 'pinchAndZoom',
+                type: 'checkbox',
+                label: 'Pinch-and-Zoomable',
+                onchange: pnzChange
+            }
         ];
 
         // Simple default dialog
         win = editor.windowManager.open({
             title: 'Insert image',
-            data: data,
+            data: {},
             body: generalFormItems,
             onSubmit: onSubmitForm
         });
+        win.find('formitem')[0].hide();
      }
      editor.addButton('imagepnz', {
          icon: 'image',
