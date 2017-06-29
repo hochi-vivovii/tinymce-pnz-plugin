@@ -46,39 +46,46 @@ tinymce.PluginManager.add('imagepnz', function(editor) {
         }
         function fileSelected(e) {
             var data = win.toJSON();
-            var check = checkFileSize(e.meta.file.size, data.pinchAndZoom);
+            var check = validateFile(e.meta.file, data);
             if (!check)
                 return;
-            if (e.meta.file.type != 'image/jpeg' && e.meta.file.type != 'image/png') {
-                win.find('notification')[0].innerHtml('File type must be either jpeg or png');
-                win.find('notification')[0].show();
-                return;
-            }
             win.find('notification')[0].hide();
             file = e.meta.file;
         }
-        function checkFileSize(size, pinchAndZoom){
-            if (pinchAndZoom && size > (editor.settings.pinch_and_zoom_high_res_limit * 1024)) {
+        function reset(){
+            file = null;
+            win.find('formitem')[0]._items[1].value('');
+            win.find('formitem')[1]._items[1].value('');
+        }
+        function validateFile(inputFile, data){
+            if (data.pinchAndZoom && inputFile.size > (editor.settings.pinch_and_zoom_high_res_limit * 1024)) {
                 win.find('notification')[0].innerHtml(
                     sprintf('File size must less than %dKB.', editor.settings.pinch_and_zoom_high_res_limit)
                 );
                 win.find('notification')[0].show();
+                reset();
                 return false;
             }
-            else if(!pinchAndZoom && size > (editor.settings.pinch_and_zoom_low_res_limit * 1024)) {
+            if(!data.pinchAndZoom && inputFile.size > (editor.settings.pinch_and_zoom_low_res_limit * 1024)) {
                 win.find('notification')[0].innerHtml(
                     sprintf('File size must less than %dKB.', editor.settings.pinch_and_zoom_low_res_limit)
                 );
                 win.find('notification')[0].show();
+                reset();
                 return false;
             }
+            if (inputFile.type != 'image/jpeg' && inputFile.type != 'image/png') {
+                win.find('notification')[0].innerHtml('File type must be either jpeg or png');
+                win.find('notification')[0].show();
+                reset();
+                return false;
+            }
+            win.find('formitem')[0]._items[1].value(inputFile.name);
+            win.find('formitem')[1]._items[1].value(inputFile.name);
             return true;
         }
         function pnzChange(){
             var data = win.toJSON();
-            file = null;
-            win.find('formitem')[0]._items[1].value('');
-            win.find('formitem')[1]._items[1].value('');
             if (data.pinchAndZoom) {
                 win.find('formitem')[0].show();
                 win.find('formitem')[1].hide();
@@ -88,6 +95,8 @@ tinymce.PluginManager.add('imagepnz', function(editor) {
                 win.find('formitem')[0].hide();
             }
             win.find('notification')[0].hide();
+            if (file)
+                validateFile(file, data);
         }
         // General settings shared between simple and advanced dialogs
         var generalFormItems = [
